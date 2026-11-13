@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=GLITCH//CORE Welcome
+Comment=Welcome and first-run information for GLITCH//CORE
+Exec=glitch-welcome
+Icon=glitch-welcome
+Terminal=false
+Type=Application
+Categories=System;Settings;
+StartupNotify=true
