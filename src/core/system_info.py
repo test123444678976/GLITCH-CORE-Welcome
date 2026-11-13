@@ -9,7 +9,10 @@ from pathlib import Path
 
 def _load_native():
     root = Path(__file__).resolve().parents[2]
-    candidates = (root / "build" / "libglitch_system.so",)
+    candidates = (
+        root / "libglitch_system.so",
+        root / "build" / "libglitch_system.so",
+    )
     for candidate in candidates:
         if candidate.is_file():
             try:
