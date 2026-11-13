@@ -48,7 +48,7 @@ def main() -> int:
             self.add(outer)
 
             brand = Gtk.Label()
-            brand.set_markup('<span size="small" letter_spacing="1800" foreground="#a8b4d6">GLITCH//CORE</span>')
+            brand.set_markup('<span size="small" foreground="#a8b4d6">GLITCH//CORE</span>')
             brand.set_xalign(0)
             outer.pack_start(brand, False, False, 0)
 
