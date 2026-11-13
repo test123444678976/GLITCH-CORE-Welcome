@@ -1,0 +1,15 @@
+{
+  "format": "gcpkg-app-v1",
+  "id": "org.glitchcore.welcome",
+  "name": "GLITCH//CORE Welcome",
+  "version": "0.1.0",
+  "summary": "First-run welcome application for GLITCH//CORE",
+  "runtime": {
+    "type": "system",
+    "dependencies": ["python3", "python3-gi", "gtk3"]
+  },
+  "entry": "src/main.py",
+  "desktop": "packaging/glitch-welcome.desktop",
+  "license": "MIT",
+  "architecture": ["x86_64", "aarch64"]
+}
