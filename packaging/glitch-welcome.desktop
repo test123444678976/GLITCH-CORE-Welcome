@@ -5,5 +5,5 @@ Comment=Welcome and first-run information for GLITCH//CORE
 Exec=glitch-welcome
 TryExec=glitch-welcome
 Terminal=false
-Categories=System;Settings;
+Categories=System;
 StartupNotify=true
