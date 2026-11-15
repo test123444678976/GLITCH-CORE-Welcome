@@ -26,6 +26,7 @@ test:
 check:
 	$(PYTHON) -m py_compile src/main.py src/core/system_info.py
 	$(PYTHON) src/main.py --version
+	$(PYTHON) src/main.py --system-info
 	$(PYTHON) -m json.tool packaging/glitch-app.json > /dev/null
 
 install: native
@@ -37,9 +38,10 @@ install: native
 	install -m 644 src/core/system_info.py src/core/__init__.py $(DESTDIR)$(PREFIX)/lib/glitch-welcome/src/core/
 	install -m 644 src/ui/style.css $(DESTDIR)$(PREFIX)/lib/glitch-welcome/src/ui/
 	install -m 755 $(NATIVE_LIB) $(DESTDIR)$(PREFIX)/lib/glitch-welcome/libglitch_system.so
-	printf '%s\\n' '#!/bin/sh' 'exec $(PYTHON) $(PREFIX)/lib/glitch-welcome/src/main.py "$$@"' > $(DESTDIR)$(PREFIX)/bin/glitch-welcome
+	printf '%s\n' '#!/bin/sh' 'exec $(PYTHON) $(PREFIX)/lib/glitch-welcome/src/main.py "$$@"' > $(DESTDIR)$(PREFIX)/bin/glitch-welcome
 	chmod 755 $(DESTDIR)$(PREFIX)/bin/glitch-welcome
 	install -m 644 packaging/glitch-welcome.desktop $(DESTDIR)$(PREFIX)/share/applications/
 
 clean:
-	rm -rf $(BUILD_DIR) src/__pycache__ src/core/__pycache__ tests/__pycache__
+	rm -rf $(BUILD_DIR)
+	find src tests -type d -name __pycache__ -prune -exec rm -rf {} +
