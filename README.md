@@ -1,56 +1,106 @@
 # GLITCH//CORE Welcome
 
-The official first-run welcome application for GLITCH//CORE.
+The first-run welcome application for the GLITCH//CORE operating system.
 
-## Current status
+## Status
 
-Early development (0.1.0). This repository contains a GTK 3 application prototype,
-a small optional C system-information backend, tests and CI. It is **not yet
-integrated into a GLITCH//CORE image**.
+**Version:** 0.2.0 — early development.
 
-The current GLITCH//CORE rescue ISO is a BusyBox-based prototype and does not
-ship GTK 3, PyGObject, Xorg or MATE. Run this application on a Linux desktop
-with GTK 3 and PyGObject installed, or integrate it after the graphical
-GLITCH//CORE userspace is available.
+This repository contains a GTK 3 desktop application, a small optional native
+C backend, automated tests and a GitHub Actions CI workflow. It is not yet
+integrated into a GLITCH//CORE image.
+
+The current GLITCH//CORE rescue ISO is still a BusyBox-based prototype. It
+does not include GTK 3, PyGObject, Xorg or MATE. Welcome can be tested on a
+Linux desktop now and integrated into the distribution when its graphical
+userspace is ready.
 
 ## Features
 
-- First-run welcome screen with GLITCH//CORE visual styling
-- Read-only OS, kernel, architecture and memory information
-- Optional native C backend (Python fallback remains available)
-- Accessible GTK navigation and a setup-complete action
-- No privileged operations and no changes to system configuration
+- GLITCH//CORE-themed first-run window built with GTK 3
+- Read-only operating-system, kernel, architecture and memory information
+- Optional native C backend with a Python standard-library fallback
+- Copy system information to the clipboard
+- About dialog and application version
+- Headless `--version` and `--system-info` commands
+- Desktop entry and staged installation support
+- No administrator operations and no automatic system changes
 
-## Development
+## Requirements
 
-Dependencies (Debian/Ubuntu example):
+- Linux
+- Python 3.10 or newer
+- GTK 3 and PyGObject
+- A C compiler and Make (only needed to build/install the optional native backend)
+
+On Ubuntu 24.04 or 26.04, install the dependencies with:
 
 ```sh
-sudo apt install python3 python3-gi gir1.2-gtk-3.0 build-essential
+sudo apt update
+sudo apt install -y python3 python3-gi gir1.2-gtk-3.0 build-essential make desktop-file-utils
+```
+
+## Build and run
+
+From the repository root:
+
+```sh
 make
+make test
+make check
 make run
 ```
 
-The C backend is optional. Build it with `make`; without the shared library,
-the app uses its Python standard-library fallback.
+The graphical window requires a Linux graphical session. WSL2 users need WSLg
+(or another working X11/Wayland display connection) for `make run`.
 
-Run checks:
+Headless information commands do not need GTK to open a window:
 
 ```sh
-make test
-make check
+python3 src/main.py --version
+python3 src/main.py --system-info
 ```
+
+## Install
+
+To install into the system (default prefix: `/usr`):
+
+```sh
+sudo make install
+```
+
+To create a package staging tree without changing the host system:
+
+```sh
+make DESTDIR=/tmp/glitch-welcome-stage install
+```
+
+The installed launcher is `glitch-welcome`. The desktop entry is installed
+under `share/applications`.
 
 ## Project layout
 
-- `src/main.py` — GTK 3 application and CLI
-- `src/core/system.c`, `system.h` — safe read-only native system information
-- `src/core/system_info.py` — Python interface and fallback
+- `src/main.py` — GTK 3 interface and command-line entry point
+- `src/core/system.c`, `system.h` — read-only native system information
+- `src/core/system_info.py` — Python API and fallback implementation
 - `src/ui/style.css` — application styling
 - `tests/` — automated tests
-- `packaging/` — desktop entry and GLITCH package metadata
+- `packaging/` — desktop entry and provisional GLITCH package metadata
+- `.github/workflows/ci.yml` — build, test and packaging checks
+
+## Package metadata
+
+`packaging/glitch-app.json` is a provisional project manifest. Its
+`gcpkg-app-v1` format must be checked against the eventual GLITCH//CORE
+package-manager specification before it is treated as an installable package.
 
 ## Safety and permissions
 
-The application only reads system information. It does not run shell commands,
-request administrator privileges, install software, or edit system files.
+Welcome only reads system information. It does not run shell commands, request
+administrator privileges, install software, edit system files or change system
+settings. The Finish button closes the window; it does not claim to complete
+system configuration.
+
+## License
+
+This project is distributed under the MIT License. See [LICENSE](LICENSE).
