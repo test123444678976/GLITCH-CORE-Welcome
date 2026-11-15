@@ -8,21 +8,49 @@ from pathlib import Path
 
 from core.system_info import get_system_info
 
-APP_VERSION = "0.1.0"
+APP_VERSION = "0.2.0"
 ROOT = Path(__file__).resolve().parents[1]
+
+
+def format_system_info(info: dict[str, str]) -> str:
+    """Format system information for the CLI and clipboard."""
+    labels = (
+        ("Operating system", "operating_system"),
+        ("Kernel", "kernel"),
+        ("Architecture", "architecture"),
+        ("Installed memory", "memory"),
+    )
+    return "\n".join(f"{label}: {info[key]}" for label, key in labels)
 
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="GLITCH//CORE Welcome")
-    parser.add_argument("--version", action="version", version=f"GLITCH//CORE Welcome {APP_VERSION}")
+    parser.add_argument(
+        "--version",
+        action="version",
+        version=f"GLITCH//CORE Welcome {APP_VERSION}",
+    )
+    parser.add_argument(
+        "--system-info",
+        action="store_true",
+        help="print read-only system information and exit",
+    )
     args = parser.parse_args()
+
+    info = get_system_info()
+    if args.system_info:
+        print(format_system_info(info))
+        return 0
 
     try:
         import gi
         gi.require_version("Gtk", "3.0")
-        from gi.repository import Gtk, Gdk
+        from gi.repository import Gdk, Gtk
     except (ImportError, ValueError) as exc:
-        print("GTK 3 / PyGObject is required to launch the graphical application.", file=sys.stderr)
+        print(
+            "GTK 3 / PyGObject is required to launch the graphical application.",
+            file=sys.stderr,
+        )
         print(f"Details: {exc}", file=sys.stderr)
         return 2
 
@@ -47,22 +75,24 @@ def main() -> int:
             outer.get_style_context().add_class("welcome-root")
             self.add(outer)
 
-            brand = Gtk.Label()
-            brand.set_markup('<span size="small" foreground="#a8b4d6">GLITCH//CORE</span>')
+            brand = Gtk.Label(label="GLITCH//CORE")
             brand.set_xalign(0)
+            brand.get_style_context().add_class("brand")
             outer.pack_start(brand, False, False, 0)
 
-            title = Gtk.Label()
-            title.set_markup('<span size="xx-large" weight="bold">Welcome to your new system.</span>')
+            title = Gtk.Label(label="Welcome to your new system.")
             title.set_xalign(0)
+            title.set_line_wrap(True)
+            title.get_style_context().add_class("welcome-title")
             outer.pack_start(title, False, False, 0)
 
-            subtitle = Gtk.Label(label="A new beginning. Your system, your way.")
+            subtitle = Gtk.Label(
+                label="A new beginning. Your system, your way."
+            )
             subtitle.set_xalign(0)
             subtitle.get_style_context().add_class("subtitle")
             outer.pack_start(subtitle, False, False, 0)
 
-            info = get_system_info()
             panel = Gtk.Grid(column_spacing=24, row_spacing=14)
             panel.set_margin_top(14)
             panel.get_style_context().add_class("info-panel")
@@ -75,20 +105,62 @@ def main() -> int:
                 name = Gtk.Label(label=label)
                 name.set_xalign(0)
                 name.get_style_context().add_class("info-label")
+
                 value = Gtk.Label(label=info[key])
                 value.set_xalign(0)
                 value.set_selectable(True)
+                value.set_line_wrap(True)
+                value.set_max_width_chars(48)
+
                 panel.attach(name, 0, row, 1, 1)
                 panel.attach(value, 1, row, 1, 1)
             outer.pack_start(panel, True, True, 0)
 
-            footer = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=12)
+            footer = Gtk.Box(
+                orientation=Gtk.Orientation.HORIZONTAL, spacing=10
+            )
             footer.set_halign(Gtk.Align.END)
+
+            about = Gtk.Button(label="About")
+            about.get_style_context().add_class("secondary-action")
+            about.connect("clicked", self.show_about)
+            footer.pack_start(about, False, False, 0)
+
+            copy_button = Gtk.Button(label="Copy system info")
+            copy_button.get_style_context().add_class("secondary-action")
+            copy_button.connect("clicked", self.copy_system_info)
+            footer.pack_start(copy_button, False, False, 0)
+
             done = Gtk.Button(label="Finish")
             done.get_style_context().add_class("suggested-action")
             done.connect("clicked", lambda _button: Gtk.main_quit())
-            footer.pack_end(done, False, False, 0)
+            footer.pack_start(done, False, False, 0)
             outer.pack_end(footer, False, False, 0)
+
+            version = Gtk.Label(label=f"GLITCH//CORE Welcome {APP_VERSION}")
+            version.set_xalign(0)
+            version.get_style_context().add_class("version")
+            outer.pack_end(version, False, False, 0)
+
+        def copy_system_info(self, _button):
+            clipboard = Gtk.Clipboard.get(Gdk.SELECTION_CLIPBOARD)
+            clipboard.set_text(format_system_info(info), -1)
+
+        def show_about(self, _button):
+            dialog = Gtk.MessageDialog(
+                transient_for=self,
+                flags=Gtk.DialogFlags.MODAL,
+                message_type=Gtk.MessageType.INFO,
+                buttons=Gtk.ButtonsType.CLOSE,
+                text="GLITCH//CORE Welcome",
+            )
+            dialog.format_secondary_text(
+                f"Version {APP_VERSION}\n"
+                "A first-run application for GLITCH//CORE.\n"
+                "Distributed under the MIT License."
+            )
+            dialog.run()
+            dialog.destroy()
 
     window = WelcomeWindow()
     window.show_all()
