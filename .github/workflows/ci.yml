@@ -7,21 +7,44 @@ on:
     branches: [main]
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   test:
-    runs-on: ubuntu-24.04
+    name: Build and test (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, ubuntu-26.04]
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Install build and GTK dependencies
+
+      - name: Install build, GTK and desktop-entry dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y build-essential python3 python3-gi gir1.2-gtk-3.0
-      - name: Compile native backend
-        run: make native
+          sudo apt-get install -y build-essential python3 python3-gi gir1.2-gtk-3.0 desktop-file-utils
+
+      - name: Build native backend
+        run: make clean all
+
       - name: Run Python tests
         run: make test
-      - name: Static and CLI checks
+
+      - name: Run CLI and metadata checks
         run: make check
-      - name: Validate package metadata
-        run: python3 -m json.tool packaging/glitch-app.json > /dev/null
+
+      - name: Validate desktop entry
+        run: desktop-file-validate packaging/glitch-welcome.desktop
+
+      - name: Test staged installation
+        run: |
+          stage="$(mktemp -d)"
+          make DESTDIR="$stage" install
+          test -x "$stage/usr/bin/glitch-welcome"
+          sh -n "$stage/usr/bin/glitch-welcome"
+          test -f "$stage/usr/lib/glitch-welcome/libglitch_system.so"
+          test -f "$stage/usr/share/applications/glitch-welcome.desktop"
